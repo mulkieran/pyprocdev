@@ -42,10 +42,16 @@ class TestProcdev(object):
         """
         for device_type in pyprocdev.DeviceTypes.types():
             table = pyprocdev.ProcDev()
+
             drivers = table.drivers(device_type)
             for driver in drivers:
                 for major in table.get_majors(device_type, driver):
                     assert table.get_driver(device_type, major) == driver
+
+            majors = table.majors(device_type)
+            for major in majors:
+                driver = table.get_driver(device_type, major)
+                assert major in table.get_majors(device_type, driver)
 
     def test_exceptions(self):
         """
