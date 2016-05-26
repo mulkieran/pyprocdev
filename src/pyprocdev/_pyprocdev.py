@@ -44,6 +44,19 @@ class _TablePairs(object):
         self.right = right
 
 
+def _build_reverse_table(table):
+    """
+    Build a table that reverses ``table``.
+
+    :param table: a mapping from x to y
+
+    :returns: a table that reverses the mapping
+    :rtype: dict of y * (sorted list of x)
+    """
+    items = sorted(table.items(), key=lambda x: x[1])
+    groups = itertools.groupby(items, lambda x: x[1])
+    return dict((key, sorted(x[0] for x in pairs)) for key, pairs in groups)
+
 class ProcDev(object):
     """
     Main class for /proc/devices data.
@@ -57,33 +70,35 @@ class ProcDev(object):
 
         :raises ProcDevParsingError:
         """
-        parsing = DeviceTypes.NOTYPE
+        parsing = None
         with open(filepath) as istream:
             for line in istream:
                 line = line.rstrip()
 
                 if line == "":
-                    parsing = DeviceTypes.NOTYPE
+                    parsing = None
                     continue
 
                 if line == "Character devices:":
+                    # pylint: disable=redefined-variable-type
                     parsing = DeviceTypes.CHARACTER
                     continue
 
                 if line == "Block devices:":
+                    # pylint: disable=redefined-variable-type
                     parsing = DeviceTypes.BLOCK
                     continue
 
                 try:
                     (major, device) = line.split()
-                except ValueError:
+                except ValueError: # pragma: no cover
                     raise ProcDevParsingError(
                        "Unexpected format for line %s" % line
                     )
 
                 try:
                     table = self._tables[parsing].left
-                except KeyError:
+                except KeyError: # pragma: no cover
                     raise ProcDevParsingError(
                        "Parsing data for unknown device type %s." % parsing
                     )
@@ -105,7 +120,71 @@ class ProcDev(object):
 
         self._parse_file(filepath)
 
-    def get_driver(device_type, major_number):
+    def _left_table(self, device_type):
+        """
+        Returns the left table for ``device_type``.
+
+        :param DeviceType device_type: the device type
+
+        :returns: the left table
+        :rtype: dict of int * str
+
+        :raises ProcDevValueError:
+        """
+        try:
+            table_pair = self._tables[device_type]
+        except KeyError:
+            raise ProcDevValueError(device_type, "device_type")
+        return table_pair.left
+
+    def _right_table(self, device_type):
+        """
+        Returns the right table for ``device_type``.
+
+        :param DeviceType device_type: the device type
+
+        :returns: the right table
+        :rtype: dict of str * (set of int)
+
+        :raises ProcDevValueError: on bad device type
+        """
+        try:
+            table_pair = self._tables[device_type]
+        except KeyError:
+            raise ProcDevValueError(device_type, "device_type")
+
+        if table_pair.right is None:
+            table_pair.right = _build_reverse_table(table_pair.left)
+
+        return table_pair.right
+
+    def majors(self, device_type):
+        """
+        The major numbers for ``device_type``.
+
+        :param DeviceType device_type: the device type
+
+        :returns: a sorted list of major numbers
+        :rtype: list of int
+
+        :raises ProcDevValueError: on bad ``device_type``
+        """
+        return sorted(self._left_table(device_type).keys())
+
+    def drivers(self, device_type):
+        """
+        The drivers for ``device_type``.
+
+        :param DeviceType device_type: the device type
+
+        :returns: the names of drivers for this device type
+        :rtype: set of str
+
+        :raises ProcDevValueError: on bad ``device_type``
+        """
+        return frozenset(self._right_table(device_type).keys())
+
+    def get_driver(self, device_type, major_number):
         """
         Get the driver name for ``major_number``.
 
@@ -115,35 +194,19 @@ class ProcDev(object):
         :returns: the drive name for this major number or None if none
         :rtype: str or NoneType
 
-        :raises ProcDevValueError: for bad device type
+        :raises ProcDevValueError: for bad device type or major number
         """
         try:
-            table = self._tables[device_type]
+            return self._left_table(device_type)[major_number]
         except KeyError:
-            raise ProcDevValueError(device_type, "device_type")
+            raise ProcDevValueError(
+               major_number,
+               "major_number",
+               "unknown major_number %s for device_type %s" % \
+                   (major_number, device_type)
+            )
 
-        try:
-            return table.left[major_number]
-        except KeyError:
-            return None
-
-    def _build_reverse_table(self, table):
-        """
-        Build a table that reverses ``table``.
-
-        :param table: a mapping from x to y
-
-        :returns: a table that reverses the mapping
-        :rtype: dict of y * (set of x)
-        """
-        items = sorted(table.items(), lambda x: x[1])
-        groups = itertools.groupby(items, lambda x: x[1])
-
-        return dict(
-           (key, frozenset(x[0] for x in pairs)) for key, pairs in groups
-        )
-
-    def get_majors(device_type, driver):
+    def get_majors(self, device_type, driver):
         """
         Get the major numbers for ``driver``.
 
@@ -151,16 +214,15 @@ class ProcDev(object):
         :param str driver: the name of the driver
 
         :returns: the set of major numbers corresponding to this driver
-        :rtype: set of int or NoneType
+        :rtype: sorted list of int or NoneType
 
-        :raises ProcDevValueError: for a bad device type
+        :raises ProcDevValueError: for a bad device type or driver
         """
         try:
-            table_pair = self._tables[device_type]
+            return self._right_table(device_type)[driver]
         except KeyError:
-            raise ProcDevValueError(device_type, "device_type")
-
-        table_pair.right = \
-           table_pair.right or self._build_reverse_table(table_pair.left)
-
-        return table_pair.right.get(driver)
+            raise ProcDevValueError(
+               driver,
+               "driver",
+               "unknown driver %s for device_type %s" % (driver, device_type)
+            )

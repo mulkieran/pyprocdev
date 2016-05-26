@@ -32,17 +32,6 @@ class DeviceType(object):
     # pylint: disable=too-few-public-methods
     pass
 
-class NoType(DeviceType):
-    """
-    A null type for device types.
-    """
-    # pylint: disable=too-few-public-methods
-
-    def __str__(self):
-        return "no type"
-
-NoType = NoType()
-
 class Character(DeviceType):
     """
     Type of Character devices.
@@ -73,4 +62,12 @@ class DeviceTypes(object):
 
     BLOCK = Block
     CHARACTER = Character
-    NOTYPE = NoType
+
+    @classmethod
+    def types(cls):
+        """
+        Returns all members types.
+
+        :returns: iterable of member types
+        """
+        return (cls.BLOCK, cls.CHARACTER)

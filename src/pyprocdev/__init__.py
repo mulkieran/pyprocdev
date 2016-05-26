@@ -18,6 +18,19 @@
 
 """
 The public interface of pyprocdev.
+
+Constants:
+    DeviceTypes.BLOCK
+    DeviceTypes.CHARACTER
+
+Errors:
+    ProcDevError
+
+Main Class:
+    ProcDev
 """
 
+from ._constants import DeviceTypes
+from ._errors import ProcDevError
+from ._pyprocdev import ProcDev
 from ._version import __version__
