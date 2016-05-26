@@ -19,14 +19,14 @@
 """
 The public interface of pyprocdev.
 
-Constants:
-    DeviceTypes.BLOCK
-    DeviceTypes.CHARACTER
+- Constants:
+    * DeviceTypes.BLOCK
+    * DeviceTypes.CHARACTER
 
-Errors:
+- Errors:
     ProcDevError
 
-Main Class:
+- Main Class:
     ProcDev
 """
 

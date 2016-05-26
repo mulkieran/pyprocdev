@@ -192,7 +192,7 @@ class ProcDev(object):
         :param int major_number: the major number
 
         :returns: the drive name for this major number or None if none
-        :rtype: str or NoneType
+        :rtype: str
 
         :raises ProcDevValueError: for bad device type or major number
         """
@@ -214,7 +214,7 @@ class ProcDev(object):
         :param str driver: the name of the driver
 
         :returns: the set of major numbers corresponding to this driver
-        :rtype: sorted list of int or NoneType
+        :rtype: sorted list of int
 
         :raises ProcDevValueError: for a bad device type or driver
         """

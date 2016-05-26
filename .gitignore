@@ -58,6 +58,6 @@ target/
 
 .hypothesis
 
-doc/justbases
+doc/pyprocdev
 doc/tests
 doc/_build
