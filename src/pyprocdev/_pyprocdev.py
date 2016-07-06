@@ -118,6 +118,16 @@ class ProcDev(object):
            DeviceTypes.BLOCK : _TablePairs(dict(), None)
         }
 
+        self._majors = {
+           DeviceTypes.CHARACTER : None,
+           DeviceTypes.BLOCK : None
+        }
+
+        self._drivers = {
+           DeviceTypes.CHARACTER : None,
+           DeviceTypes.BLOCK : None
+        }
+
         self._parse_file(filepath)
 
     def _left_table(self, device_type):
@@ -169,7 +179,14 @@ class ProcDev(object):
 
         :raises ProcDevValueError: on bad ``device_type``
         """
-        return sorted(self._left_table(device_type).keys())
+        try:
+            if self._majors[device_type] is None:
+                self._majors[device_type] = \
+                   sorted(self._left_table(device_type).keys())
+        except KeyError:
+            raise ProcDevValueError(device_type, "device_type")
+
+        return self._majors[device_type]
 
     def drivers(self, device_type):
         """
@@ -182,7 +199,14 @@ class ProcDev(object):
 
         :raises ProcDevValueError: on bad ``device_type``
         """
-        return frozenset(self._right_table(device_type).keys())
+        try:
+            if self._drivers[device_type] is None:
+                self._drivers[device_type] = \
+                   frozenset(self._right_table(device_type).keys())
+        except KeyError:
+            raise ProcDevValueError(device_type, "device_type")
+
+        return self._drivers[device_type]
 
     def get_driver(self, device_type, major_number):
         """

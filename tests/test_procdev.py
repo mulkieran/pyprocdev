@@ -48,6 +48,16 @@ class TestProcdev(object):
                 for major in table.get_majors(device_type, driver):
                     assert table.get_driver(device_type, major) == driver
 
+            drivers = table.drivers(device_type)
+            for driver in drivers:
+                for major in table.get_majors(device_type, driver):
+                    assert table.get_driver(device_type, major) == driver
+
+            majors = table.majors(device_type)
+            for major in majors:
+                driver = table.get_driver(device_type, major)
+                assert major in table.get_majors(device_type, driver)
+
             majors = table.majors(device_type)
             for major in majors:
                 driver = table.get_driver(device_type, major)
@@ -66,4 +76,8 @@ class TestProcdev(object):
         with pytest.raises(pyprocdev.ProcDevError):
             table.get_driver(pyprocdev.DeviceTypes.BLOCK, None)
         with pytest.raises(pyprocdev.ProcDevError):
+            table.get_driver(None, 8)
+        with pytest.raises(pyprocdev.ProcDevError):
             table.get_majors(pyprocdev.DeviceTypes.CHARACTER, None)
+        with pytest.raises(pyprocdev.ProcDevError):
+            table.get_majors(None, 'hb')
