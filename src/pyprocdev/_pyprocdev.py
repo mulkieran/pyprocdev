@@ -215,7 +215,7 @@ class ProcDev(object):
         :param DeviceType device_type: the device type
         :param int major_number: the major number
 
-        :returns: the drive name for this major number or None if none
+        :returns: the drive name for this major number
         :rtype: str
 
         :raises ProcDevValueError: for bad device type or major number
