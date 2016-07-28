@@ -67,6 +67,8 @@ class TestProcdev(object):
         """
         Test that exceptions are raised.
         """
+        with pytest.raises(pyprocdev.ProcDevError):
+            pyprocdev.ProcDev('/wholly/unlikely/path/name')
 
         table = pyprocdev.ProcDev()
         with pytest.raises(pyprocdev.ProcDevError):

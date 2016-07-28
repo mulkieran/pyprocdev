@@ -68,7 +68,8 @@ class ProcDev(object):
 
         :param str filepath: the filepath to parse
 
-        :raises ProcDevParsingError:
+        :raises ProcDevParsingError: if parsing unsuccesful
+        :raises IOError: if problem reading file
         """
         parsing = None
         with open(filepath) as istream:
@@ -128,7 +129,14 @@ class ProcDev(object):
            DeviceTypes.BLOCK : None
         }
 
-        self._parse_file(filepath)
+        try:
+            self._parse_file(filepath)
+        except IOError as err:
+            raise ProcDevValueError(
+               filepath,
+               "filepath",
+               "problem reading file path: %s" % err
+            )
 
     def _left_table(self, device_type):
         """
