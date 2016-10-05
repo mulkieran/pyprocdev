@@ -90,21 +90,15 @@ class ProcDev(object):
                     parsing = DeviceTypes.BLOCK
                     continue
 
-                try:
-                    (major, device) = line.split()
-                except ValueError: # pragma: no cover
-                    raise ProcDevParsingError(
-                       "Unexpected format for line %s" % line
-                    )
+                if parsing is not None:
+                    try:
+                        (major, device) = line.split()
+                    except ValueError: # pragma: no cover
+                        raise ProcDevParsingError(
+                           "Unexpected format for line %s" % line
+                        )
 
-                try:
-                    table = self._tables[parsing].left
-                except KeyError: # pragma: no cover
-                    raise ProcDevParsingError(
-                       "Parsing data for unknown device type %s." % parsing
-                    )
-
-                table[int(major)] = device
+                    self._tables[parsing].left[int(major)] = device
 
     def __init__(self, filepath='/proc/devices'):
         """
